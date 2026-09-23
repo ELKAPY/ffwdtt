@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller
+*.manifest
+*.spec
+build/
+dist/
+
+# Configuration containing private server IP and secrets
+config.ini
+settings.json
+wg-turn.conf
+
+# Temporary files & logs
+*.log
+*.tmp
+*~
+
+# Windows shortcuts & artifacts
+*.lnk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
