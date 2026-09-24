@@ -226,10 +226,6 @@ class WdttApp(ctk.CTk):
         # Select default tab
         self._select_tab("tunnel")
 
-        # Auto-start bridge if it was enabled in settings
-        if self.config_mgr.pcvpn_enabled:
-            self.tunnel_mgr.start_bridge()
-
     def _build_header(self):
         header = ctk.CTkFrame(self, fg_color=COLOR_CARD, corner_radius=0, height=70)
         header.pack(fill="x", side="top")

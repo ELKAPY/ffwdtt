@@ -184,6 +184,7 @@ class TunnelManager:
         is_rawtun = self.config_mgr.protocol == "rawtun"
         mode = "rawtun" if is_rawtun else "vpn"
 
+        # Match exact start.bat invocation
         cmd = [
             exe,
             "-mode", mode,
@@ -199,16 +200,14 @@ class TunnelManager:
         if self.config_mgr.turn_tcp:
             cmd.append("-turn-tcp")
 
-        if self.config_mgr.obfs:
+        if self.config_mgr.obfs and self.config_mgr.obfs != "audio":
             cmd.extend(["-obfs", self.config_mgr.obfs])
 
-        captcha_mode = self.config_mgr.captcha_mode
-        if captcha_mode:
-            cmd.extend(["-captcha-mode", captcha_mode])
+        if self.config_mgr.captcha_mode and self.config_mgr.captcha_mode != "auto":
+            cmd.extend(["-captcha-mode", self.config_mgr.captcha_mode])
             
-        go_dns = self.config_mgr.go_dns
-        if go_dns:
-            cmd.extend(["-go-dns", go_dns])
+        if self.config_mgr.go_dns and self.config_mgr.go_dns != "yandex":
+            cmd.extend(["-go-dns", self.config_mgr.go_dns])
 
         self._update_status("Подключение...", False)
 
@@ -247,9 +246,19 @@ class TunnelManager:
             if self.on_log:
                 self.on_log(raw_line)
 
-            # Detect connection success
-            if "[READY] Туннель готов к работе" in raw_line or "VPN запущен" in raw_line:
+            # Detect WinTUN permission or driver errors immediately
+            if "Access is denied" in raw_line or "Ошибка запуска WinTUN" in raw_line or "CreateTUN ошибка" in raw_line:
+                self._update_status("Ошибка: WinTUN (нужны права Администратора)", False)
+            elif "Failed to create private namespace" in raw_line or "Failed to take device installation mutex" in raw_line:
+                self._update_status("Ошибка: WinTUN (нужны права Администратора)", False)
+
+            # Detect real VPN routing connection success
+            elif "[WINTUN-WG]" in raw_line and ("подключен успешно" in raw_line or "запущено в Wintun" in raw_line):
                 self._update_status("Подключено", True)
+            elif "Userspace WireGuard up" in raw_line:
+                self._update_status("Подключено", True)
+            elif "[READY] Туннель готов к работе" in raw_line and not self.is_connected:
+                self._update_status("Подключение (WinTUN)...", False)
             
             # Detect stats line:
             # [СТАТИСТИКА] Активных: 9 | Трафик: 0.00 МБ | ↓0.00 МБ / ↑0.00 МБ
