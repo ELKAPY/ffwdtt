@@ -21,6 +21,8 @@ type Settings struct {
 	CaptchaMode               string `json:"captcha_mode"` // "auto", "wv", "rjs"
 	GoDNS                     string `json:"go_dns"`       // "yandex", "cloudflare", "google", etc.
 	FirstLaunchShortcutHandled bool  `json:"first_launch_shortcut_handled"`
+	WindowWidth               int    `json:"window_width"`
+	WindowHeight              int    `json:"window_height"`
 }
 
 type ConfigManager struct {
@@ -60,6 +62,8 @@ func NewConfigManager() *ConfigManager {
 			Obfs:         "audio",
 			CaptchaMode:  "auto",
 			GoDNS:        "yandex",
+			WindowWidth:  840,
+			WindowHeight: 760,
 		},
 	}
 	cm.LoadAll()
@@ -123,6 +127,12 @@ func (cm *ConfigManager) LoadAll() {
 			}
 			if s.GoDNS == "" {
 				s.GoDNS = "yandex"
+			}
+			if s.WindowWidth < 600 {
+				s.WindowWidth = 840
+			}
+			if s.WindowHeight < 500 {
+				s.WindowHeight = 760
 			}
 			cm.Settings = s
 		}

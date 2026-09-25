@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"unsafe"
 
 	"github.com/jchv/go-webview2"
 )
@@ -16,15 +17,32 @@ var uiHTML string
 
 var (
 	modUser32Close       = syscall.NewLazyDLL("user32.dll")
+	modDwmapi            = syscall.NewLazyDLL("dwmapi.dll")
 	procDefWindowProcW   = modUser32Close.NewProc("DefWindowProcW")
 	procCallWindowProcW  = modUser32Close.NewProc("CallWindowProcW")
 	procSetWindowLongPtr = modUser32Close.NewProc("SetWindowLongPtrW")
 	procDestroyWindow    = modUser32Close.NewProc("DestroyWindow")
 	procPostQuitMessage  = modUser32Close.NewProc("PostQuitMessage")
+	procDwmSetWindowAttr = modDwmapi.NewProc("DwmSetWindowAttribute")
+	procGetWindowRect    = modUser32Close.NewProc("GetWindowRect")
 
 	origWndProc uintptr
 	globalApp   *AppController
 )
+
+type RECT struct {
+	Left   int32
+	Top    int32
+	Right  int32
+	Bottom int32
+}
+
+func setDarkTitleBar(hwnd uintptr) {
+	val := int32(1)
+	// DWMWA_USE_IMMERSIVE_DARK_MODE = 20 (Win11 / Win10 20H1+), 19 on older Win10
+	_, _, _ = procDwmSetWindowAttr.Call(hwnd, 20, uintptr(unsafe.Pointer(&val)), 4)
+	_, _, _ = procDwmSetWindowAttr.Call(hwnd, 19, uintptr(unsafe.Pointer(&val)), 4)
+}
 
 type AppController struct {
 	w         webview2.WebView
@@ -35,6 +53,23 @@ type AppController struct {
 	closingOK bool
 }
 
+func (a *AppController) SaveCurrentWindowSize() {
+	if a == nil || a.hwnd == 0 {
+		return
+	}
+	var r RECT
+	procGetWindowRect.Call(a.hwnd, uintptr(unsafe.Pointer(&r)))
+	w := int(r.Right - r.Left)
+	h := int(r.Bottom - r.Top)
+	// Only save if window is not minimized or maximized offscreen
+	if w >= 600 && h >= 500 && r.Left > -10000 {
+		s := a.cm.Settings
+		s.WindowWidth = w
+		s.WindowHeight = h
+		_ = a.cm.SaveSettings(s)
+	}
+}
+
 func main() {
 	// 1. Ensure elevated Administrator rights (essential for WinTUN network driver)
 	RelaunchAsAdmin()
@@ -42,13 +77,22 @@ func main() {
 	cm := NewConfigManager()
 	tm := NewTunnelManager(cm)
 
+	initW := cm.Settings.WindowWidth
+	if initW < 600 {
+		initW = 840
+	}
+	initH := cm.Settings.WindowHeight
+	if initH < 500 {
+		initH = 760
+	}
+
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
 		Debug:     true,
 		AutoFocus: true,
 		WindowOptions: webview2.WindowOptions{
 			Title:     "WDTT — VK TURN Client",
-			Width:     800,
-			Height:    700,
+			Width:     uint(initW),
+			Height:    uint(initH),
 			IconId:    1,
 		},
 	})
@@ -59,6 +103,7 @@ func main() {
 	defer w.Destroy()
 
 	hwnd := uintptr(w.Window())
+	setDarkTitleBar(hwnd)
 	app := &AppController{
 		w:    w,
 		hwnd: hwnd,
@@ -150,6 +195,7 @@ func customWndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 
 	if msg == 0x0010 { // WM_CLOSE
 		if globalApp != nil {
+			globalApp.SaveCurrentWindowSize()
 			action := globalApp.cm.Settings.CloseAction
 			if action == "tray" {
 				procShowWindow.Call(hwnd, SW_HIDE)
@@ -178,6 +224,7 @@ func (a *AppController) RestoreWindow() {
 }
 
 func (a *AppController) CleanExit() {
+	a.SaveCurrentWindowSize()
 	a.tm.StopVPN()
 	a.tm.bridge.Stop()
 	if a.tray != nil {
@@ -271,6 +318,7 @@ func (a *AppController) DismissFirstRun() {
 }
 
 func (a *AppController) HandleCloseChoice(action string, dontAskAgain bool) {
+	a.SaveCurrentWindowSize()
 	if dontAskAgain {
 		s := a.cm.Settings
 		s.CloseAction = action
