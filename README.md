@@ -10,8 +10,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue.svg" alt="Platform" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg" alt="Python" />
-  <img src="https://img.shields.io/badge/UI-CustomTkinter-cyan.svg" alt="UI" />
+  <img src="https://img.shields.io/badge/Language-Go%201.24%2B-00ADD8.svg" alt="Go" />
+  <img src="https://img.shields.io/badge/UI-WebView2%20%2F%20HTML5-cyan.svg" alt="UI" />
   <img src="https://img.shields.io/badge/License-GPL%20v3-green.svg" alt="License" />
 </p>
 
@@ -61,15 +61,15 @@
 2. Запустите **`WDTT.exe`** (или `start.bat`).
 3. При необходимости скопируйте `config.example.ini` в `config.ini` и укажите данные вашего сервера.
 
-### Вариант 2. Запуск из исходного кода (Python)
-1. Убедитесь, что установлен Python 3.10 или новее.
-2. Установите зависимости:
+### Вариант 2. Запуск и сборка из исходного кода (Go)
+1. Убедитесь, что установлен Go 1.24 или новее.
+2. Соберите исполняемый файл:
    ```bash
-   pip install -r requirements.txt
+   go build -ldflags="-H windowsgui -s -w" -o WDTT.exe .
    ```
-3. Запустите приложение:
+3. Запустите:
    ```bash
-   python main.py
+   WDTT.exe
    ```
 
 ---
@@ -120,13 +120,13 @@ WORKERS=40
 build.bat
 ```
 
-Или вручную через PyInstaller:
+Или вручную через Go:
 
 ```bash
-pyinstaller --noconsole --onefile --uac-admin --icon="app_icon.ico" --name="WDTT" --collect-all customtkinter --collect-all darkdetect --collect-all pystray --add-data "app_icon.png;." --add-data "app_icon.ico;." main.py
+go build -ldflags="-H windowsgui -s -w" -o WDTT.exe .
 ```
 
-Готовый файл **`WDTT.exe`** появится в корневой папке проекта.
+Готовый файл **`WDTT.exe`** (размером всего ~5.9 МБ со встроенным веб-интерфейсом и всеми зависимостями) появится в корневой папке проекта.
 
 ---
 
@@ -134,9 +134,22 @@ pyinstaller --noconsole --onefile --uac-admin --icon="app_icon.ico" --name="WDTT
 
 ```
 ffwdtt/
-├── main.py              # Главное окно, UI на CustomTkinter, диалоги
-├── config_manager.py    # Менеджер настроек (config.ini и settings.json)
-├── tunnel_manager.py    # Управление процессами VPN и фонового клиента
+├── main.go              # Точка входа Go, Webview2, системный трей, UAC-элевация
+├── config.go            # Управление конфигурацией (config.ini и settings.json), пул хешей
+├── tunnel.go            # Управление ядром vk-turn-client, пинг, проверка хешей, чтение логов
+├── pcvpn.go             # Локальный двухпротокольный прокси-мост (SOCKS5 + HTTP CONNECT)
+├── tray.go              # Нативный системный трей Windows (Shell_NotifyIcon)
+├── shortcut.go          # Создание ярлыков на Рабочем столе
+├── ui/
+│   └── index.html       # Встроенный современный веб-интерфейс (HTML5/CSS3/JS)
+├── app_icon.png         # Иконка приложения (PNG)
+├── app_icon.ico         # Иконка приложения (ICO для Windows)
+├── config.example.ini   # Шаблон конфигурации для Git
+├── build.bat            # Скрипт быстрой компиляции в .exe
+├── start.bat            # Скрипт быстрого запуска
+├── LICENSE              # Лицензия GNU GPL v3
+└── README.md            # Документация проекта
+```
 ├── pcvpn_bridge.py      # Двухпротокольный прокси-сервер (SOCKS5 + HTTP CONNECT)
 ├── tray_manager.py      # Управление системным треем Windows (pystray)
 ├── app_icon.png         # Иконка приложения (PNG)

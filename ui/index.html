@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WDTT Client</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --card: #111827;
+      --card-border: #1F293D;
+      --input-bg: #0D111A;
+      --accent: #00E5FF;
+      --accent-hover: #00B4D8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --text: #F9FAFB;
+      --text-sec: #9CA3AF;
+      --text-muted: #6B7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--card);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00E5FF, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #000;
+      font-size: 16px;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sec);
+      letter-spacing: 1px;
+    }
+
+    .admin-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #1F2937;
+      color: var(--success);
+      margin-left: 8px;
+    }
+
+    .header-pills {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #182030;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .pill.active {
+      background: #0F2E22;
+      color: var(--success);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .pill.connecting {
+      background: #2E2410;
+      color: var(--warning);
+    }
+
+    /* Tabs Navigation */
+    nav {
+      background: var(--card);
+      margin: 12px 24px 8px;
+      border-radius: 10px;
+      display: flex;
+      padding: 4px;
+      border: 1px solid var(--card-border);
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-sec);
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--text);
+      background: #1F293D;
+    }
+
+    .nav-btn.active {
+      background: #1F293D;
+      color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 24px 16px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+
+    /* Hero Banner / Connect */
+    .hero-box {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .connect-btn {
+      width: 170px;
+      height: 56px;
+      border-radius: 28px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.35);
+      flex-shrink: 0;
+    }
+
+    .connect-btn:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .connect-btn.connected {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.35);
+    }
+
+    .connect-btn.connecting {
+      background: var(--warning);
+      color: #000;
+      box-shadow: 0 0 18px rgba(245, 158, 11, 0.35);
+    }
+
+    .hero-info {
+      flex: 1;
+    }
+
+    .hero-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .hero-status {
+      font-size: 14px;
+      color: var(--text-sec);
+      margin-bottom: 8px;
+    }
+
+    .hero-bridge-bar {
+      background: #0D111A;
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    /* Grid */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .stat-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .stat-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-small {
+      padding: 3px 8px;
+      background: #182030;
+      border: none;
+      color: var(--accent);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-small:hover {
+      background: #222C40;
+    }
+
+    /* Inputs & Forms */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      height: 36px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0 12px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 0 16px;
+      cursor: pointer;
+      height: 36px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: #182030;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 14px;
+      cursor: pointer;
+      height: 36px;
+      transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: #222C40;
+      border-color: var(--accent);
+    }
+
+    /* Segments */
+    .segmented {
+      display: flex;
+      background: #182030;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .seg-btn {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-sec);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .seg-btn.active {
+      background: var(--accent);
+      color: #000;
+    }
+
+    /* Preset Buttons */
+    .presets-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .preset-btn {
+      background: #182030;
+      border: none;
+      color: var(--text-sec);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .preset-btn:hover {
+      background: #222C40;
+      color: var(--text);
+    }
+
+    /* Hash List */
+    .hash-list {
+      background: #0D111A;
+      border-radius: 8px;
+      padding: 6px 10px;
+      max-height: 120px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+    }
+
+    .hash-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid #182030;
+      font-size: 11px;
+    }
+
+    .hash-item:last-child {
+      border-bottom: none;
+    }
+
+    .hash-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      margin-right: 8px;
+    }
+
+    .hash-del {
+      color: var(--danger);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .hash-del:hover {
+      background: #261E27;
+    }
+
+    /* Switch */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #182030;
+      transition: .3s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: #000;
+    }
+
+    /* Terminal Console */
+    .terminal {
+      background: #080C14;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      color: #A7F3D0;
+      height: 380px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Modal Dialog */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      width: 440px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: var(--text-sec);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .modal-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text);
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10B981;
+      color: #000;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">W</div>
+      <div>
+        <div class="brand-title">WDTT <span class="admin-badge" id="adminBadge">🛡️ ADMIN</span></div>
+        <div class="brand-sub">VK TURN TUNNEL CLIENT (GO)</div>
+      </div>
+    </div>
+    <div class="header-pills">
+      <div class="pill" id="bridgePill">📱 МОСТ: ВЫКЛ</div>
+      <div class="pill" id="vpnPill">● VPN: ОТКЛЮЧЕН</div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('tunnel')">⚡ VPN Туннель</button>
+    <button class="nav-btn" onclick="switchTab('pcvpn')">📱 PCVPN Мост</button>
+    <button class="nav-btn" onclick="switchTab('settings')">⚙️ Настройки</button>
+    <button class="nav-btn" onclick="switchTab('console')">📜 Консоль и Логи</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- TAB 1: TUNNEL -->
+    <div id="tab-tunnel" class="tab-content active">
+
+      <!-- First run banner -->
+      <div class="card" id="firstRunCard" style="display:none; background:#182338; border-color:var(--accent);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:12px; font-weight:700;">📌 Создать ярлык WDTT на Рабочем столе?</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-action" style="height:28px; padding:0 12px;" onclick="createDesktopShortcut()">Создать ярлык</button>
+            <button class="btn-outline" style="height:28px; padding:0 10px;" onclick="dismissFirstRun()">✕ Позже</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Card -->
+      <div class="card">
+        <div class="hero-box">
+          <button class="connect-btn" id="btnConnect" onclick="toggleVpn()">ПОДКЛЮЧИТЬ VPN</button>
+          <div class="hero-info">
+            <div class="hero-title">ГЛАВНЫЙ СЕТЕВОЙ ТУННЕЛЬ (WINTUN / VPN):</div>
+            <div class="hero-status" id="lblMainStatus">VPN отключен. Нажмите кнопку для запуска туннеля.</div>
+            <div class="hero-bridge-bar">
+              <span id="lblHeroBridge">📱 Мост для телефона: Остановлен (порт 24066)</span>
+              <button class="btn-small" style="margin:0;" id="btnHeroBridge" onclick="toggleBridge()">Включить мост</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-title">СЕРВЕР</div>
+          <div class="stat-val" id="statPeer">1.2.3.4:56000</div>
+          <button class="btn-small" id="btnPing" onclick="testPing()">⚡ Пинг</button>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">ВОРКЕРЫ</div>
+          <div class="stat-val" id="statWorkers">27 в конфиге</div>
+          <div class="stat-sub" id="statWorkersSub">Запуск: 27 (3 гр. по 9)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">ТРАФИК</div>
+          <div class="stat-val" id="statTraffic">0.00 МБ</div>
+          <div class="stat-sub" id="statTrafficSub">↓ 0.00 / ↑ 0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">СЕССИЯ</div>
+          <div class="stat-val" id="statTimer">00:00:00</div>
+          <div class="stat-sub" id="statTimerSub">Отключено</div>
+        </div>
+      </div>
+
+      <!-- Key Card -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-size:12px; font-weight:700;">🔑 КЛЮЧ ПОДКЛЮЧЕНИЯ / VK ХЕШ ЗВОНКА <span style="font-size:11px; color:var(--success);" id="lblPoolBadge"></span></div>
+          <div style="font-size:11px; color:var(--text-muted);">(Сохраняется в config.ini)</div>
+        </div>
+        <div class="input-row">
+          <input type="text" id="mainKeyInput" placeholder="Вставьте ссылку на звонок VK или ключ...">
+          <button class="btn-action" onclick="saveMainKey()">Сохранить</button>
+        </div>
+      </div>
+
+      <!-- PCVPN Notice Banner -->
+      <div class="card" style="background:#101724; display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
+        <div style="font-size:12px;">
+          <strong style="color:var(--accent);">📱 Поддержка PC VPN Bridge (Android)</strong>
+          <span style="color:var(--text-sec); margin-left:6px;">— локальный прокси-мост для смартфона</span>
+        </div>
+        <button class="btn-outline" style="height:28px;" onclick="switchTab('pcvpn')">Мост →</button>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: PCVPN BRIDGE -->
+    <div id="tab-pcvpn" class="tab-content">
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:15px; font-weight:700; color:var(--accent);">📱 ЛОКАЛЬНЫЙ SOCKS5 / HTTP ПРОКСИ-МОСТ</div>
+          <div style="font-size:12px; color:var(--text-sec); margin-top:4px;">
+            Сетевой шлюз для внешних устройств и смартфонов в локальной сети Wi-Fi.<br>
+            Включается и выключается независимо от главного VPN на компьютере.<br>
+            Поддерживает протоколы SOCKS5 и HTTP CONNECT на едином порту.
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn-action" style="height:44px; padding:0 22px; font-size:13px;" id="btnTabBridge" onclick="toggleBridge()">ВКЛЮЧИТЬ МОСТ</button>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;" id="lblTabBridgeStatus">Статус: Остановлен</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:10px;">ПАРАМЕТРЫ ДЛЯ ВВОДА В ПРИЛОЖЕНИИ НА ТЕЛЕФОНЕ:</div>
+        
+        <div class="form-group" style="background:#0D111A; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--text-sec); font-size:12px;">📡 IP-адрес ПК в Wi-Fi:</span>
+          <strong style="color:var(--accent); font-size:13px;" id="bridgeLANIP">192.168.1.100</strong>
+          <button class="btn-small" onclick="copyText(document.getElementById('bridgeLANIP').innerText)">Скопировать</button>
+        </div>
+
+        <div class="form-group" style="background:#0D111A; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--text-sec); font-size:12px;">🏷️ Имя устройства (mDNS):</span>
+          <strong style="color:var(--accent); font-size:13px;" id="bridgeMDNS">desktop.local</strong>
+          <button class="btn-small" onclick="copyText(document.getElementById('bridgeMDNS').innerText)">Скопировать</button>
+        </div>
+
+        <div class="form-group" style="background:#0D111A; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--text-sec); font-size:12px;">🔌 Порт прокси:</span>
+          <strong style="color:var(--accent); font-size:13px;" id="bridgePort">24066</strong>
+          <button class="btn-small" onclick="copyText(document.getElementById('bridgePort').innerText)">Скопировать</button>
+        </div>
+
+        <button class="btn-action" style="width:100%; margin-top:8px;" onclick="copyAllBridgeInfo()">📋 Скопировать всё для приложения PC VPN Bridge</button>
+      </div>
+
+      <div class="card">
+        <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:8px;">ПАРАМЕТРЫ И ИНСТРУКЦИЯ ПОДКЛЮЧЕНИЯ:</div>
+        <div style="font-size:12px; color:var(--text-sec); line-height:1.6;">
+          1. Подключите смартфон и этот компьютер к одной Wi-Fi сети.<br>
+          2. В настройках прокси смартфона или клиенте укажите IP-адрес или имя ПК.<br>
+          3. В поле порта укажите 24066 (протокол SOCKS5 или HTTP).<br>
+          4. Логин и пароль оставьте пустыми (авторизация не требуется).<br>
+          5. Нажмите «Подключить» на телефоне — трафик пойдет через прокси-мост.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SETTINGS -->
+    <div id="tab-settings" class="tab-content">
+      
+      <!-- Server Settings -->
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:12px;">ПАРАМЕТРЫ СЕРВЕРА VK TURN (CONFIG.INI)</div>
+        <div class="form-group">
+          <label>Адрес сервера (PEER IP:Port):</label>
+          <input type="text" id="setPeer" placeholder="1.2.3.4:56000">
+        </div>
+        <div class="form-group">
+          <label>Пароль подключения (PASSWORD):</label>
+          <input type="password" id="setPassword" placeholder="Пароль...">
+        </div>
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between;">
+            <label>Количество воркеров (WORKERS):</label>
+            <span style="font-size:11px; color:var(--accent); font-weight:700;" id="workersCalcHint"></span>
+          </div>
+          <input type="text" id="setWorkers" oninput="updateWorkersCalc(this.value)">
+          <div class="presets-row">
+            <span style="font-size:10px; color:var(--text-muted);">Группы по 9:</span>
+            <button class="preset-btn" onclick="setWorkerPreset(18)">18</button>
+            <button class="preset-btn" onclick="setWorkerPreset(27)">27</button>
+            <button class="preset-btn" onclick="setWorkerPreset(36)">36</button>
+            <button class="preset-btn" onclick="setWorkerPreset(45)">45</button>
+            <button class="preset-btn" onclick="setWorkerPreset(54)">54</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VK Hash Pool -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-size:13px; font-weight:700; color:var(--accent);">ПУЛ VK-ХЕШЕЙ (ОТКАЗОУСТОЙЧИВОСТЬ)</div>
+          <button class="btn-small" id="btnTestHashes" onclick="testHashesPool()">⚡ Проверить хеши</button>
+        </div>
+        <div style="font-size:11px; color:var(--text-sec); margin-bottom:10px;">
+          Клиент поддерживает несколько ссылок на звонки. При обрыве или блокировке одного звонка клиент автоматически переключается на запасной.
+        </div>
+        <div class="hash-list" id="hashListContainer"></div>
+        <div class="input-row">
+          <input type="text" id="newHashInput" placeholder="Вставьте ссылку на звонок VK или хеш...">
+          <button class="btn-action" style="height:36px;" onclick="addHashToPool()">+ Добавить в пул</button>
+        </div>
+      </div>
+
+      <!-- Protocol -->
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:8px;">РЕЖИМ ШИФРОВАНИЯ И ПРОТОКОЛ</div>
+        <div class="segmented" style="margin-bottom:8px;">
+          <button class="seg-btn active" id="btnProtoDtls" onclick="setProtocol('dtls')">🛡️ Стандартный DTLS (Рекомендуется)</button>
+          <button class="seg-btn" id="btnProtoRaw" onclick="setProtocol('rawtun')">⚡ Сверхбыстрый Raw-IP (-notls)</button>
+        </div>
+        <div style="font-size:11px; color:var(--text-sec);" id="protoDesc">
+          Полная маскировка под настоящий звонок VK. Надежный стек WireGuard поверх WinTUN.
+        </div>
+      </div>
+
+      <!-- Bypass & Obfuscation -->
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px;">ОБХОД БЛОКИРОВОК И МАСКИРОВКА ТРАФИКА</div>
+        
+        <div class="switch-row">
+          <div style="font-size:12px;">Режим TCP TURN (-turn-tcp) — обход блокировок UDP (Ростелеком)</div>
+          <label class="switch">
+            <input type="checkbox" id="swTurnTcp">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-top:8px;">
+          <label>Режим обфускации WebRTC пакетов (-obfs):</label>
+          <select id="selObfs">
+            <option value="audio">audio (Аудиопоток WebRTC)</option>
+            <option value="video">video (Видеопоток WebRTC)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Режим обхода капчи (-captcha-mode):</label>
+          <select id="selCaptcha">
+            <option value="auto">auto (Автоматический выбор)</option>
+            <option value="wv">wv (WebView эмуляция)</option>
+            <option value="rjs">rjs (Быстрый Raw JS)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>DNS-резолвер серверов VK (-go-dns):</label>
+          <select id="selDNS">
+            <option value="yandex">yandex (Яндекс DNS)</option>
+            <option value="cloudflare">cloudflare (Cloudflare 1.1.1.1)</option>
+            <option value="google">google (Google 8.8.8.8)</option>
+            <option value="doh-yandex">doh-yandex (DNS-over-HTTPS)</option>
+            <option value="doh-cloudflare">doh-cloudflare (DNS-over-HTTPS)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- App Settings -->
+      <div class="card">
+        <div style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px;">СИСТЕМНЫЕ НАСТРОЙКИ</div>
+        
+        <div class="form-group">
+          <label>Порт прокси для телефона (PCVPN):</label>
+          <input type="text" id="setPcvpnPort" placeholder="24066">
+        </div>
+
+        <div class="form-group">
+          <label>Действие при нажатии на крестик [X]:</label>
+          <select id="selCloseAction">
+            <option value="ask">Спрашивать каждый раз</option>
+            <option value="tray">Сворачивать в трей</option>
+            <option value="exit">Закрывать программу</option>
+          </select>
+        </div>
+
+        <button class="btn-outline" style="width:100%; margin-bottom:12px;" onclick="createDesktopShortcut()">📌 Создать ярлык на Рабочем столе</button>
+        <button class="btn-action" style="width:100%; height:42px;" onclick="saveAllSettings()">💾 Сохранить все настройки</button>
+      </div>
+
+    </div>
+
+    <!-- TAB 4: CONSOLE -->
+    <div id="tab-console" class="tab-content">
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-muted);">ТРАНСЛЯЦИЯ ЛОГОВ VK-TURN-CLIENT В РЕАЛЬНОМ ВРЕМЕНИ</div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-outline" style="height:26px; font-size:11px;" onclick="clearLogs()">Очистить</button>
+          <button class="btn-outline" style="height:26px; font-size:11px;" onclick="copyLogs()">Скопировать лог</button>
+        </div>
+      </div>
+      <div class="terminal" id="terminalBox"></div>
+    </div>
+
+  </main>
+
+  <!-- Modal Dialog: Close action confirmation -->
+  <div class="modal-overlay" id="closeModal">
+    <div class="modal-box">
+      <div class="modal-title">Куда свернуть приложение?</div>
+      <div class="modal-desc">
+        Вы можете свернуть окно в системный трей возле часов.<br>
+        Туннель и мост для телефона продолжат стабильно работать в фоне.<br>
+        Либо можно закрыть программу полностью.
+      </div>
+      <label class="modal-checkbox">
+        <input type="checkbox" id="cbDontAskAgain" checked>
+        Запомнить выбор (больше не показывать)
+      </label>
+      <div class="modal-buttons">
+        <button class="btn-outline" style="flex:1; color:var(--danger); border-color:var(--danger);" onclick="confirmCloseAction('exit')">Закрыть полностью</button>
+        <button class="btn-action" style="flex:1;" onclick="confirmCloseAction('tray')">В системный трей</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toastBox">Готово!</div>
+
+  <!-- JavaScript logic & Go bridge -->
+  <script>
+    let currentConfig = {};
+    let isConnected = false;
+    let isBridgeRunning = false;
+    let timerInterval = null;
+    let sessionSeconds = 0;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toastBox');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt);
+      showToast("Скопировано!");
+    }
+
+    function copyAllBridgeInfo() {
+      const ip = document.getElementById('bridgeLANIP').innerText;
+      const mdns = document.getElementById('bridgeMDNS').innerText;
+      const port = document.getElementById('bridgePort').innerText;
+      copyText(`Host: ${ip} (${mdns})\nPort: ${port}\nProtocols: SOCKS5 / HTTP`);
+    }
+
+    // Go Backend Handlers
+    window.onLogLine = function(line) {
+      const box = document.getElementById('terminalBox');
+      box.innerText += line + "\n";
+      box.scrollTop = box.scrollHeight;
+    };
+
+    window.onStatusChange = function(statusText, connected) {
+      isConnected = connected;
+      const vpnPill = document.getElementById('vpnPill');
+      const btnConnect = document.getElementById('btnConnect');
+      const lblMain = document.getElementById('lblMainStatus');
+      const statTimerSub = document.getElementById('statTimerSub');
+
+      btnConnect.classList.remove('connected', 'connecting');
+
+      if (connected) {
+        vpnPill.className = 'pill active';
+        vpnPill.innerText = '● VPN: ПОДКЛЮЧЕН';
+        btnConnect.classList.add('connected');
+        btnConnect.innerText = 'ОТКЛЮЧИТЬ VPN';
+        lblMain.innerText = 'Главный VPN туннель активен. Весь трафик ПК защищен.';
+        lblMain.style.color = 'var(--success)';
+        statTimerSub.innerText = 'Активен';
+        statTimerSub.style.color = 'var(--success)';
+        startTimer();
+      } else if (statusText.includes('Подключение')) {
+        vpnPill.className = 'pill connecting';
+        vpnPill.innerText = '● VPN: ПОДКЛЮЧЕНИЕ...';
+        btnConnect.classList.add('connecting');
+        btnConnect.innerText = 'ОТМЕНА';
+        lblMain.innerText = 'Установка соединения через VK TURN сервер...';
+        lblMain.style.color = 'var(--warning)';
+      } else {
+        vpnPill.className = 'pill';
+        vpnPill.innerText = '○ VPN: ОТКЛЮЧЕН';
+        btnConnect.innerText = 'ПОДКЛЮЧИТЬ VPN';
+        lblMain.innerText = 'VPN отключен. Нажмите кнопку для запуска туннеля.';
+        lblMain.style.color = 'var(--text-sec)';
+        statTimerSub.innerText = 'Отключено';
+        statTimerSub.style.color = 'var(--text-muted)';
+        stopTimer();
+      }
+    };
+
+    window.onStats = function(stats) {
+      document.getElementById('statWorkersSub').innerText = `${stats.active_workers} активно`;
+      document.getElementById('statTraffic').innerText = `${stats.total_mb} МБ`;
+      document.getElementById('statTrafficSub').innerText = `↓ ${stats.down_mb} / ↑ ${stats.up_mb}`;
+    };
+
+    window.onCloseRequested = function() {
+      document.getElementById('closeModal').classList.add('show');
+    };
+
+    function confirmCloseAction(action) {
+      const dontAsk = document.getElementById('cbDontAskAgain').checked;
+      document.getElementById('closeModal').classList.remove('show');
+      window.handleCloseChoice(action, dontAsk);
+    }
+
+    function toggleVpn() {
+      window.toggleVPN();
+    }
+
+    function toggleBridge() {
+      window.toggleBridge().then(active => {
+        isBridgeRunning = active;
+        updateBridgeUI(active);
+      });
+    }
+
+    function updateBridgeUI(active) {
+      const pill = document.getElementById('bridgePill');
+      const heroLbl = document.getElementById('lblHeroBridge');
+      const heroBtn = document.getElementById('btnHeroBridge');
+      const tabBtn = document.getElementById('btnTabBridge');
+      const tabLbl = document.getElementById('lblTabBridgeStatus');
+      const port = document.getElementById('bridgePort').innerText;
+
+      if (active) {
+        pill.className = 'pill active';
+        pill.innerText = `📱 МОСТ: АКТИВЕН (${port})`;
+        heroLbl.innerText = `📱 Мост для телефона: Активен на порту ${port}`;
+        heroLbl.style.color = 'var(--success)';
+        heroBtn.innerText = 'Остановить';
+        heroBtn.style.color = 'var(--danger)';
+        tabBtn.innerText = 'ОСТАНОВИТЬ МОСТ';
+        tabBtn.style.background = 'var(--danger)';
+        tabLbl.innerText = `Статус: Активен на порту ${port}`;
+        tabLbl.style.color = 'var(--success)';
+      } else {
+        pill.className = 'pill';
+        pill.innerText = '📱 МОСТ: ВЫКЛ';
+        heroLbl.innerText = `📱 Мост для телефона: Остановлен (порт ${port})`;
+        heroLbl.style.color = 'var(--text-muted)';
+        heroBtn.innerText = 'Включить мост';
+        heroBtn.style.color = 'var(--accent)';
+        tabBtn.innerText = 'ВКЛЮЧИТЬ МОСТ';
+        tabBtn.style.background = 'var(--accent)';
+        tabLbl.innerText = 'Статус: Остановлен';
+        tabLbl.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function testPing() {
+      const btn = document.getElementById('btnPing');
+      btn.innerText = 'Замер...';
+      window.pingTest().then(res => {
+        btn.innerText = '⚡ ' + res;
+      });
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      sessionSeconds = 0;
+      timerInterval = setInterval(() => {
+        sessionSeconds++;
+        const h = String(Math.floor(sessionSeconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sessionSeconds % 3600) / 60)).padStart(2, '0');
+        const s = String(sessionSeconds % 60).padStart(2, '0');
+        document.getElementById('statTimer').innerText = `${h}:${m}:${s}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function setWorkerPreset(v) {
+      document.getElementById('setWorkers').value = v;
+      updateWorkersCalc(v);
+    }
+
+    function updateWorkersCalc(v) {
+      const n = parseInt(v) || 27;
+      const grp = Math.floor(n / 9) || 1;
+      const act = grp * 9;
+      const hint = document.getElementById('workersCalcHint');
+      if (n !== act) {
+        hint.innerText = `→ Фактически запустится: ${act} (${grp} гр. по 9)`;
+        hint.style.color = 'var(--warning)';
+      } else {
+        hint.innerText = `→ ${act} воркеров (${grp} гр. по 9)`;
+        hint.style.color = 'var(--success)';
+      }
+    }
+
+    function setProtocol(proto) {
+      document.getElementById('btnProtoDtls').classList.toggle('active', proto === 'dtls');
+      document.getElementById('btnProtoRaw').classList.toggle('active', proto === 'rawtun');
+      const desc = document.getElementById('protoDesc');
+      if (proto === 'rawtun') {
+        desc.innerText = '⚡ Прямой туннель без DTLS-оверхеда (-notls). Минимальный пинг. Внимание: VPS-сервер должен быть запущен с флагом -listen-direct!';
+        desc.style.color = 'var(--warning)';
+      } else {
+        desc.innerText = '🛡️ Полная маскировка под настоящий звонок VK. Надежный стек WireGuard поверх WinTUN.';
+        desc.style.color = 'var(--text-sec)';
+      }
+    }
+
+    function clearLogs() {
+      document.getElementById('terminalBox').innerText = '';
+    }
+
+    function copyLogs() {
+      copyText(document.getElementById('terminalBox').innerText);
+    }
+
+    function saveMainKey() {
+      const val = document.getElementById('mainKeyInput').value.trim();
+      window.saveMainKey(val).then(() => {
+        showToast("✓ Ключ сохранен в config.ini");
+        refreshConfig();
+      });
+    }
+
+    function addHashToPool() {
+      const val = document.getElementById('newHashInput').value.trim();
+      if (!val) return;
+      window.addHash(val).then(ok => {
+        if (ok) {
+          document.getElementById('newHashInput').value = '';
+          showToast("✓ Хеш добавлен в пул!");
+          refreshConfig();
+        } else {
+          showToast("Хеш уже есть в пуле");
+        }
+      });
+    }
+
+    function removeHash(h) {
+      window.removeHash(h).then(() => {
+        showToast("Хеш удален из пула");
+        refreshConfig();
+      });
+    }
+
+    function testHashesPool() {
+      const btn = document.getElementById('btnTestHashes');
+      btn.innerText = 'Проверка...';
+      window.checkHashes().then(results => {
+        btn.innerText = '⚡ Проверить хеши';
+        renderHashList(results);
+        showToast("Проверка хешей завершена!");
+      });
+    }
+
+    function renderHashList(results) {
+      window.getHashes().then(hashes => {
+        const container = document.getElementById('hashListContainer');
+        container.innerHTML = '';
+        if (!hashes || hashes.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); font-size:11px;">Пул пуст. Добавьте хотя бы один звонок.</div>';
+          return;
+        }
+
+        hashes.forEach((h, idx) => {
+          const item = document.createElement('div');
+          item.className = 'hash-item';
+
+          const shortH = h.length > 44 ? h.substring(0, 42) + '...' : h;
+          let statusBadge = '';
+          if (results && results[idx]) {
+            const st = results[idx].status === 'ok';
+            statusBadge = `<span style="color:${st ? 'var(--success)' : 'var(--danger)'}; font-weight:bold; margin-right:8px;">${st ? '✓ OK' : '✕ Ошибка'}</span>`;
+          }
+
+          item.innerHTML = `
+            <span class="hash-text">${idx + 1}. ${shortH}</span>
+            <div style="display:flex; align-items:center;">
+              ${statusBadge}
+              <button class="hash-del" onclick="removeHash('${h}')">✕</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      });
+    }
+
+    function saveAllSettings() {
+      const peer = document.getElementById('setPeer').value.trim();
+      const password = document.getElementById('setPassword').value.trim();
+      const workers = document.getElementById('setWorkers').value.trim();
+      const pcvpnPort = parseInt(document.getElementById('setPcvpnPort').value) || 24066;
+      const closeAction = document.getElementById('selCloseAction').value;
+      const protocol = document.getElementById('btnProtoRaw').classList.contains('active') ? 'rawtun' : 'dtls';
+      const turnTcp = document.getElementById('swTurnTcp').checked;
+      const obfs = document.getElementById('selObfs').value;
+      const captcha = document.getElementById('selCaptcha').value;
+      const dns = document.getElementById('selDNS').value;
+
+      window.saveAll(peer, password, workers, pcvpnPort, closeAction, protocol, turnTcp, obfs, captcha, dns).then(() => {
+        showToast("✓ Все настройки успешно сохранены!");
+        refreshConfig();
+      });
+    }
+
+    function createDesktopShortcut() {
+      window.createShortcut().then(ok => {
+        showToast(ok ? "✓ Ярлык создан на Рабочем столе!" : "Не удалось создать ярлык.");
+      });
+    }
+
+    function dismissFirstRun() {
+      document.getElementById('firstRunCard').style.display = 'none';
+      window.dismissFirstRun();
+    }
+
+    function refreshConfig() {
+      window.getConfig().then(cfg => {
+        currentConfig = cfg;
+        document.getElementById('statPeer').innerText = cfg.peer || '—';
+        document.getElementById('setPeer').value = cfg.peer || '';
+        document.getElementById('setPassword').value = cfg.password || '';
+        document.getElementById('setWorkers').value = cfg.workers || '27';
+        document.getElementById('setPcvpnPort').value = cfg.settings.pcvpn_port || 24066;
+        document.getElementById('bridgePort').innerText = cfg.settings.pcvpn_port || 24066;
+        document.getElementById('selCloseAction').value = cfg.settings.close_action || 'ask';
+        document.getElementById('swTurnTcp').checked = cfg.settings.turn_tcp || false;
+        document.getElementById('selObfs').value = cfg.settings.obfs || 'audio';
+        document.getElementById('selCaptcha').value = cfg.settings.captcha_mode || 'auto';
+        document.getElementById('selDNS').value = cfg.settings.go_dns || 'yandex';
+
+        setProtocol(cfg.settings.protocol || 'dtls');
+        updateWorkersCalc(cfg.workers || '27');
+
+        const n = parseInt(cfg.workers) || 27;
+        const grp = Math.floor(n / 9) || 1;
+        document.getElementById('statWorkers').innerText = `${cfg.workers} в конфиге`;
+        document.getElementById('statWorkersSub').innerText = `Запуск: ${grp * 9} (${grp} гр. по 9)`;
+
+        if (cfg.hashes && cfg.hashes.length > 0) {
+          document.getElementById('mainKeyInput').value = cfg.hashes[0];
+          document.getElementById('lblPoolBadge').innerText = cfg.hashes.length > 1 ? `(${cfg.hashes.length} в пуле)` : '';
+        } else {
+          document.getElementById('mainKeyInput').value = '';
+          document.getElementById('lblPoolBadge').innerText = '';
+        }
+
+        renderHashList();
+
+        if (!cfg.settings.first_launch_shortcut_handled) {
+          document.getElementById('firstRunCard').style.display = 'block';
+        }
+      });
+
+      window.getNetworkInfo().then(net => {
+        document.getElementById('bridgeLANIP').innerText = net.ip;
+        document.getElementById('bridgeMDNS').innerText = net.mdns;
+      });
+    }
+
+    // Auto initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshConfig();
+    });
+  </script>
+</body>
+</html>
