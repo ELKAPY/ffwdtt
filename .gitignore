@@ -17,6 +17,7 @@ wg-turn.conf
 # Temporary files & logs
 *.log
 *.tmp
+*.old
 *~
 
 # Windows shortcuts & artifacts
