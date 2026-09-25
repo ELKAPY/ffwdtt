@@ -171,6 +171,7 @@ func main() {
 	w.Bind("createShortcut", app.CreateShortcut)
 	w.Bind("dismissFirstRun", app.DismissFirstRun)
 	w.Bind("handleCloseChoice", app.HandleCloseChoice)
+	w.Bind("isBridgeActive", app.IsBridgeActive)
 
 	// 6. Set embedded HTML
 	w.SetHtml(uiHTML)
@@ -297,6 +298,10 @@ func (a *AppController) ToggleVPN() bool {
 
 func (a *AppController) ToggleBridge() bool {
 	return a.tm.ToggleBridge()
+}
+
+func (a *AppController) IsBridgeActive() bool {
+	return a.tm.IsBridgeRunning()
 }
 
 func (a *AppController) PingTest() string {

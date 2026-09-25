@@ -39,6 +39,9 @@ func (p *PcvpnBridge) Start(port int, mode string) error {
 		p.mu.Unlock()
 		return nil
 	}
+	if port <= 0 {
+		port = 24066
+	}
 	p.port = port
 	p.mode = mode
 

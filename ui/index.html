@@ -1052,9 +1052,22 @@
     }
 
     function toggleBridge() {
+      const heroBtn = document.getElementById('btnHeroBridge');
+      const tabBtn = document.getElementById('btnTabBridge');
+      if (heroBtn) heroBtn.innerText = '...';
+      if (tabBtn) tabBtn.innerText = '...';
+
       window.toggleBridge().then(active => {
         isBridgeRunning = active;
         updateBridgeUI(active);
+        if (active) {
+          showToast("✓ PCVPN Мост запущен!");
+        } else {
+          showToast("PCVPN Мост остановлен");
+        }
+      }).catch(err => {
+        showToast("Ошибка моста: " + err);
+        updateBridgeUI(false);
       });
     }
 
@@ -1298,6 +1311,13 @@
         document.getElementById('bridgeLANIP').innerText = net.ip;
         document.getElementById('bridgeMDNS').innerText = net.mdns;
       });
+
+      if (window.isBridgeActive) {
+        window.isBridgeActive().then(active => {
+          isBridgeRunning = active;
+          updateBridgeUI(active);
+        });
+      }
     }
 
     // Auto initialize on load

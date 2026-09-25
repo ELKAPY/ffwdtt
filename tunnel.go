@@ -206,12 +206,10 @@ func (tm *TunnelManager) readVpnLogs(pipeReader io.ReadCloser) {
 			tm.updateStatus("Ошибка: WinTUN (нужны права Администратора)", false)
 		} else if strings.Contains(line, "Failed to create private namespace") || strings.Contains(line, "Failed to take device installation mutex") {
 			tm.updateStatus("Ошибка: WinTUN (нужны права Администратора)", false)
-		} else if strings.Contains(line, "[WINTUN-WG]") && (strings.Contains(line, "подключен успешно") || strings.Contains(line, "запущено в Wintun")) {
-			tm.updateStatus("Подключено", true)
-		} else if strings.Contains(line, "Userspace WireGuard up") {
-			tm.updateStatus("Подключено", true)
-		} else if strings.Contains(line, "[READY] Туннель готов к работе") && !tm.isConnected {
-			tm.updateStatus("Подключение (WinTUN)...", false)
+		} else if strings.Contains(line, "[READY]") || strings.Contains(line, "VPN запущен") || strings.Contains(line, "Userspace WireGuard up") || strings.Contains(line, "WireGuard Конфиг") || strings.Contains(line, "[ПРЯМОЙ] Без DTLS") || strings.Contains(line, "[WINTUN-WG]") {
+			if !tm.isConnected {
+				tm.updateStatus("Подключено", true)
+			}
 		}
 
 		// Statistics parsing
@@ -232,6 +230,11 @@ func (tm *TunnelManager) readVpnLogs(pipeReader io.ReadCloser) {
 			}
 			if m := reTot.FindStringSubmatch(line); len(m) > 1 {
 				tm.stats.TotalMB = m[1]
+			}
+
+			// If workers are active or traffic is flowing, tunnel is definitely connected
+			if (tm.stats.ActiveWorkers > 0 || tm.stats.TotalMB != "0.00") && !tm.isConnected {
+				tm.updateStatus("Подключено", true)
 			}
 
 			if tm.onStats != nil {
@@ -269,10 +272,26 @@ func (tm *TunnelManager) StopVPN() {
 func (tm *TunnelManager) ToggleBridge() bool {
 	if tm.bridge.IsRunning() {
 		tm.bridge.Stop()
+		if tm.onLog != nil {
+			tm.onLog("[PCVPN] Мост остановлен.\n")
+		}
 		return false
 	}
-	err := tm.bridge.Start(tm.configMgr.Settings.PcvpnPort, "vpn")
-	return err == nil && tm.bridge.IsRunning()
+	port := tm.configMgr.Settings.PcvpnPort
+	if port <= 0 {
+		port = 24066
+	}
+	err := tm.bridge.Start(port, "vpn")
+	if err != nil {
+		if tm.onLog != nil {
+			tm.onLog(fmt.Sprintf("[PCVPN ОШИБКА] Не удалось открыть порт %d: %v\n", port, err))
+		}
+		return false
+	}
+	if tm.onLog != nil {
+		tm.onLog(fmt.Sprintf("[PCVPN] Мост запущен на порту %d (SOCKS5 + HTTP CONNECT)\n", port))
+	}
+	return tm.bridge.IsRunning()
 }
 
 func (tm *TunnelManager) IsBridgeRunning() bool {
